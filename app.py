@@ -51,8 +51,9 @@ if not openrouter_api_key:
     st.stop()
 
 # Change the model name here (or in .env) if Google renames or retires it
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")
+GEMINI_MODEL = get_key("GEMINI_MODEL") or "gemini-3.8-flash"
+# Use a specific chat model; "openrouter/free" can pick moderation models
+OPENROUTER_MODEL = get_key("OPENROUTER_MODEL") or "google/gemini-2.5-flash"
 
 # --------------------------------------------------
 # CREATE AI MODELS
@@ -161,6 +162,11 @@ if run_button:
                 f"REVIEW FEEDBACK:\n{review_result}"
             ))
             status.update(label="Stage 3 complete: Final answer ready", state="complete")
+
+        # Fall back to Gemini's draft if the final answer is clearly not a real answer
+        if len(final_result.strip()) < 40 or final_result.strip().lower().startswith("user safety"):
+            st.warning("The finalizer returned an unusable answer, so Gemini's draft is shown instead.")
+            final_result = gemini_result
 
         # RESULTS
         st.success("Workflow complete!")
