@@ -98,6 +98,33 @@ def to_text(response) -> str:
     return content
 
 # --------------------------------------------------
+# FILE READING
+# --------------------------------------------------
+
+MAX_CHARS = 30000  # limit how much file text is sent to the AI
+
+
+def extract_text(file) -> str:
+    name = file.name.lower()
+    if name.endswith((".xlsx", ".xls")):
+        import pandas as pd
+        sheets = pd.read_excel(file, sheet_name=None)
+        return "\n\n".join(
+            f"[Sheet: {sheet}]\n{df.to_csv(index=False)}" for sheet, df in sheets.items()
+        )
+    if name.endswith(".csv"):
+        import pandas as pd
+        return pd.read_csv(file).to_csv(index=False)
+    if name.endswith(".pdf"):
+        from pypdf import PdfReader
+        return "\n".join((p.extract_text() or "") for p in PdfReader(file).pages)
+    if name.endswith(".docx"):
+        from docx import Document
+        return "\n".join(p.text for p in Document(file).paragraphs)
+    return file.read().decode("utf-8", errors="ignore")
+
+
+# --------------------------------------------------
 # TASK INPUT
 # --------------------------------------------------
 
@@ -111,6 +138,12 @@ task = st.text_area(
         "identify errors, explain the corrections, and provide "
         "the corrected entries."
     )
+)
+
+uploaded_files = st.file_uploader(
+    "Optional: upload files (Excel, CSV, PDF, Word, text)",
+    type=["xlsx", "xls", "csv", "pdf", "docx", "txt"],
+    accept_multiple_files=True
 )
 
 run_button = st.button(
@@ -128,6 +161,21 @@ if run_button:
     if not task.strip():
         st.warning("Please enter a task before running the workflow.")
         st.stop()
+
+    # Read uploaded files and attach their contents to the task
+    if uploaded_files:
+        parts = []
+        for f in uploaded_files:
+            try:
+                parts.append(f"=== FILE: {f.name} ===\n{extract_text(f)}")
+            except Exception as e:
+                st.error(f"Could not read {f.name}: {e}")
+                st.stop()
+        file_text = "\n\n".join(parts)
+        if len(file_text) > MAX_CHARS:
+            st.warning(f"Files are large, so only the first {MAX_CHARS:,} characters were used.")
+            file_text = file_text[:MAX_CHARS]
+        task = f"{task}\n\nUse the following uploaded file contents:\n\n{file_text}"
 
     try:
         gemini_model, reviewer_model, finalizer_model = create_models()
