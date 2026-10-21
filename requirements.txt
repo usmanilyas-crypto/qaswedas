@@ -6,4 +6,6 @@ pandas
 openpyxl
 pypdf
 python-docx
- 
+pypdfium2
+pillow
+langchain-core
