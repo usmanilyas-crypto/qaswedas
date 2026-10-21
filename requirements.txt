@@ -2,3 +2,8 @@ streamlit
 python-dotenv
 langchain-google-genai
 langchain-openai
+pandas
+openpyxl
+pypdf
+python-docx
+ 
