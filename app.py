@@ -51,7 +51,7 @@ if not openrouter_api_key:
     st.stop()
 
 # Change the model name here (or in .env) if Google renames or retires it
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 
 # --------------------------------------------------
