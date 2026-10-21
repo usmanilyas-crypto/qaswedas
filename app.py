@@ -54,7 +54,7 @@ if not openrouter_api_key:
     st.stop()
 
 # Change the model name here (or in .env) if Google renames or retires it
-GEMINI_MODEL = get_key("GEMINI_MODEL") or "gemini-3.8-flash"
+GEMINI_MODEL = get_key("GEMINI_MODEL") or "gemini-3.6-flash"
 # Use a specific chat model; "openrouter/free" can pick moderation models
 OPENROUTER_MODEL = get_key("OPENROUTER_MODEL") or "google/gemini-2.5-flash"
 
